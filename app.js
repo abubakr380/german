@@ -29,7 +29,29 @@
         'shopping & money': '🛒',
         'travel & vacation': '✈️',
         'colors': '🎨',
+        'verbs': '✏️',
+        'adjectives': '🏷️',
+        'adverbs': '⏩',
+        'prepositions': '📍',
+        'conjunctions': '🔗',
     };
+
+    const WORD_TYPE_LABELS = {
+        'noun': 'Noun',
+        'verb': 'Verb',
+        'adjective': 'Adjective',
+        'adverb': 'Adverb',
+        'preposition': 'Preposition',
+        'conjunction': 'Conjunction',
+    };
+
+    function getWordType(word) {
+        return word.type || 'noun';
+    }
+
+    function isNoun(word) {
+        return getWordType(word) === 'noun';
+    }
 
     // --- Persistent Data ---
     function loadData() {
@@ -81,7 +103,9 @@
         if (state.filter.type === 'category') {
             words = words.filter(w => w.category === state.filter.value);
         } else if (state.filter.type === 'article') {
-            words = words.filter(w => w.article === state.filter.value);
+            words = words.filter(w => isNoun(w) && w.article === state.filter.value);
+        } else if (state.filter.type === 'wordtype') {
+            words = words.filter(w => getWordType(w) === state.filter.value);
         }
         return words;
     }
@@ -289,13 +313,14 @@
     // ==================================
 
     function renderArticlePicker() {
-        const derCount = A1_WORDS.filter(w => w.article === 'der').length;
-        const dieCount = A1_WORDS.filter(w => w.article === 'die').length;
-        const dasCount = A1_WORDS.filter(w => w.article === 'das').length;
+        const nouns = A1_WORDS.filter(w => isNoun(w));
+        const derCount = nouns.filter(w => w.article === 'der').length;
+        const dieCount = nouns.filter(w => w.article === 'die').length;
+        const dasCount = nouns.filter(w => w.article === 'das').length;
 
-        $('countDer').textContent = `${derCount} words`;
-        $('countDie').textContent = `${dieCount} words`;
-        $('countDas').textContent = `${dasCount} words`;
+        $('countDer').textContent = `${derCount} nouns`;
+        $('countDie').textContent = `${dieCount} nouns`;
+        $('countDas').textContent = `${dasCount} nouns`;
     }
 
     // ==================================
@@ -327,8 +352,11 @@
     function updateStepDots() {
         const d1 = $('stepDot1');
         const d2 = $('stepDot2');
+        const hasArticleStep = isNoun(state.currentWord);
+
         d1.className = 'step-dot';
         d2.className = 'step-dot';
+        d2.classList.toggle('hidden', !hasArticleStep);
 
         if (state.step === 'meaning') {
             d1.classList.add('active');
@@ -337,7 +365,9 @@
             d2.classList.add('active');
         } else if (state.step === 'result') {
             d1.classList.add(state.meaningCorrect ? 'completed' : 'failed');
-            d2.classList.add(state.articleCorrect ? 'completed' : 'failed');
+            if (hasArticleStep) {
+                d2.classList.add(state.articleCorrect ? 'completed' : 'failed');
+            }
         }
     }
 
@@ -382,7 +412,29 @@
         });
         if (!selectedOpt.correct) selectedBtn.classList.add('incorrect');
 
-        setTimeout(() => transitionToArticleStep(), 1000);
+        if (isNoun(state.currentWord)) {
+            // Nouns: proceed to article step
+            setTimeout(() => transitionToArticleStep(), 1000);
+        } else {
+            // Non-nouns: skip article, go straight to scoring & result
+            state.articleCorrect = true; // no article needed
+            state.score.total++;
+            if (state.meaningCorrect) {
+                state.score.correct++;
+                state.streak++;
+                if (!data.mastered.includes(state.currentWord.word)) {
+                    data.mastered.push(state.currentWord.word);
+                }
+                if (state.streak > data.bestStreak) data.bestStreak = state.streak;
+                saveData();
+            } else {
+                state.streak = 0;
+            }
+            renderScore();
+            updateStreakBar();
+            if (state.meaningCorrect) animateScorePop();
+            setTimeout(() => showResult(), 1000);
+        }
     }
 
     function transitionToArticleStep() {
@@ -467,6 +519,8 @@
         updateStepDots();
 
         const word = state.currentWord;
+        const noun = isNoun(word);
+        const wordDisplay = noun ? `${word.article} ${word.word}` : word.word;
         const bothCorrect = state.meaningCorrect && state.articleCorrect;
         const neitherCorrect = !state.meaningCorrect && !state.articleCorrect;
 
@@ -478,18 +532,18 @@
             banner.classList.add('result-correct');
             $('resultIcon').textContent = '🎉';
             $('resultText').textContent = 'Perfekt!';
-            $('resultDetail').innerHTML = `<strong>${word.article} ${word.word}</strong> = ${word.meaning}`;
-        } else if (neitherCorrect) {
+            $('resultDetail').innerHTML = `<strong>${wordDisplay}</strong> = ${word.meaning}`;
+        } else if (neitherCorrect || (!noun && !state.meaningCorrect)) {
             banner.classList.add('result-incorrect');
             $('resultIcon').textContent = '😕';
             $('resultText').textContent = 'Not quite';
-            $('resultDetail').innerHTML = `The correct answer is:<br><strong>${word.article} ${word.word}</strong> = ${word.meaning}`;
+            $('resultDetail').innerHTML = `The correct answer is:<br><strong>${wordDisplay}</strong> = ${word.meaning}`;
         } else {
             banner.classList.add('result-partial');
             $('resultIcon').textContent = '🤔';
             $('resultText').textContent = 'Almost!';
             const wrongPart = state.meaningCorrect ? 'article' : 'meaning';
-            $('resultDetail').innerHTML = `You got the ${wrongPart} wrong.<br><strong>${word.article} ${word.word}</strong> = ${word.meaning}`;
+            $('resultDetail').innerHTML = `You got the ${wrongPart} wrong.<br><strong>${wordDisplay}</strong> = ${word.meaning}`;
         }
 
         $('nextBtn').classList.remove('hidden');
@@ -505,7 +559,12 @@
         $('resultBanner').classList.add('hidden');
         $('nextBtn').classList.add('hidden');
         $q('#quizView .question-area').classList.remove('hidden');
-        $q('#quizView .word-label').textContent = 'Was bedeutet…';
+
+        // Show word type label
+        const wType = getWordType(state.currentWord);
+        const typeLabel = WORD_TYPE_LABELS[wType] || wType;
+        $q('#quizView .word-label').textContent = `Was bedeutet… (${typeLabel})`;
+
         $('wordText').textContent = state.currentWord.word;
         $('wordText').classList.remove('with-article');
 
