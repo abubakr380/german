@@ -3,13 +3,14 @@
    Caches all assets for offline use
    ============================================ */
 
-const CACHE_NAME = 'deutsch-vocab-v2';
+const CACHE_NAME = 'deutsch-vocab-v3';
 const ASSETS = [
     './',
     './index.html',
     './style.css',
     './app.js',
     './words.js',
+    './words_a2.js',
     './manifest.json',
     './sw.js',
 ];

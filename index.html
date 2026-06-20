@@ -33,12 +33,12 @@
                     <button class="level-card active" id="levelA1">
                         <span class="level-card-badge">A1</span>
                         <span class="level-card-label">Beginner</span>
-                        <span class="level-card-count">501 words</span>
+                        <span class="level-card-count" id="countA1">0 words</span>
                     </button>
-                    <button class="level-card locked" disabled>
+                    <button class="level-card" id="levelA2">
                         <span class="level-card-badge">A2</span>
                         <span class="level-card-label">Elementary</span>
-                        <span class="level-card-tag">Coming Soon</span>
+                        <span class="level-card-count" id="countA2">0 words</span>
                     </button>
                     <button class="level-card locked" disabled>
                         <span class="level-card-badge">B1</span>
@@ -186,7 +186,7 @@
             </section>
 
             <section class="home-section app-info">
-                <p>501 A1-level German nouns · 20 categories</p>
+                <p id="appInfoText">... words</p>
                 <p>Master both meaning & article to score ✓</p>
             </section>
 
@@ -325,6 +325,7 @@
     </nav>
 
     <script src="words.js"></script>
+    <script src="words_a2.js"></script>
     <script src="app.js"></script>
 </body>
 </html>

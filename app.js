@@ -63,6 +63,7 @@
             mastered: [],
             bestStreak: 0,
             settings: { numOptions: 4, prioritizeUnlearned: true },
+            currentLevel: 'A1'
         };
     }
 
@@ -98,8 +99,12 @@
         return a;
     }
 
+    function getActiveWords() {
+        return data.currentLevel === 'A2' ? A2_WORDS : A1_WORDS;
+    }
+
     function getFilteredWords() {
-        let words = A1_WORDS;
+        let words = getActiveWords();
         if (state.filter.type === 'category') {
             words = words.filter(w => w.category === state.filter.value);
         } else if (state.filter.type === 'article') {
@@ -133,7 +138,7 @@
     function getCategoryStats() {
         const masteredSet = getMasteredSet();
         const categories = {};
-        A1_WORDS.forEach(w => {
+        getActiveWords().forEach(w => {
             if (!categories[w.category]) categories[w.category] = { total: 0, mastered: 0 };
             categories[w.category].total++;
             if (masteredSet.has(w.word)) categories[w.category].mastered++;
@@ -153,9 +158,19 @@
             btn.classList.toggle('active', btn.dataset.tab === tabId);
         });
 
-        if (tabId === 'tabHome') renderHome();
+        if (tabId === 'tabHome') {
+            updateLevelUI();
+            renderHome();
+        }
         else if (tabId === 'tabProgress') renderProgress();
         else if (tabId === 'tabSettings') renderSettings();
+    }
+
+    function updateLevelUI() {
+        $('levelA1').classList.toggle('active', data.currentLevel === 'A1');
+        $('levelA2').classList.toggle('active', data.currentLevel === 'A2');
+        $('countA1').textContent = `${A1_WORDS.length} words`;
+        $('countA2').textContent = `${A2_WORDS.length} words`;
     }
 
     function openSubPage(pageId) {
@@ -209,8 +224,9 @@
 
     function renderHome() {
         const masteredSet = getMasteredSet();
-        const totalMastered = masteredSet.size;
-        const totalWords = A1_WORDS.length;
+        const activeWords = getActiveWords();
+        const totalMastered = activeWords.filter(w => masteredSet.has(w.word)).length;
+        const totalWords = activeWords.length;
 
         $('statMastered').textContent = totalMastered;
         $('statRemaining').textContent = totalWords - totalMastered;
@@ -224,9 +240,10 @@
     function renderProgress() {
         const masteredSet = getMasteredSet();
         const categoryStats = getCategoryStats();
-        const totalMastered = masteredSet.size;
-        const totalWords = A1_WORDS.length;
-        const overallPct = Math.round((totalMastered / totalWords) * 100);
+        const activeWords = getActiveWords();
+        const totalMastered = activeWords.filter(w => masteredSet.has(w.word)).length;
+        const totalWords = activeWords.length;
+        const overallPct = Math.round((totalMastered / totalWords) * 100) || 0;
         const categoriesComplete = Object.values(categoryStats).filter(c => c.mastered === c.total).length;
         const totalCategories = Object.keys(categoryStats).length;
 
@@ -277,6 +294,10 @@
         $('optionsMinus').disabled = data.settings.numOptions <= 3;
         $('optionsPlus').disabled = data.settings.numOptions >= 5;
         $('prioritizeToggle').setAttribute('aria-pressed', data.settings.prioritizeUnlearned ? 'true' : 'false');
+        
+        const activeWords = getActiveWords();
+        const cats = new Set(activeWords.map(w => w.category)).size;
+        $('appInfoText').textContent = `${activeWords.length} ${data.currentLevel}-level German words · ${cats} categories`;
     }
 
     // ==================================
@@ -313,7 +334,7 @@
     // ==================================
 
     function renderArticlePicker() {
-        const nouns = A1_WORDS.filter(w => isNoun(w));
+        const nouns = getActiveWords().filter(w => isNoun(w));
         const derCount = nouns.filter(w => w.article === 'der').length;
         const dieCount = nouns.filter(w => w.article === 'die').length;
         const dasCount = nouns.filter(w => w.article === 'das').length;
@@ -374,8 +395,8 @@
     function renderMeaningOptions() {
         const word = state.currentWord;
         const numDistractors = data.settings.numOptions - 1;
-        // Pull distractors from ALL words (not just filtered) for variety
-        const distractors = pickRandom(A1_WORDS, numDistractors, word.meaning);
+        // Pull distractors from active level for variety
+        const distractors = pickRandom(getActiveWords(), numDistractors, word.meaning);
         const options = shuffle([
             { text: word.meaning, correct: true },
             ...distractors.map(w => ({ text: w.meaning, correct: false }))
@@ -584,6 +605,23 @@
     // Tab bar
     document.querySelectorAll('.tab-btn').forEach(btn => {
         btn.addEventListener('click', () => showTab(btn.dataset.tab));
+    });
+
+    // Level Selector
+    $('levelA1').addEventListener('click', () => {
+        if (data.currentLevel !== 'A1') {
+            data.currentLevel = 'A1';
+            saveData();
+            showTab('tabHome');
+        }
+    });
+    
+    $('levelA2').addEventListener('click', () => {
+        if (data.currentLevel !== 'A2') {
+            data.currentLevel = 'A2';
+            saveData();
+            showTab('tabHome');
+        }
     });
 
     // Practice modes
