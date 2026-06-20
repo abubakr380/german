@@ -14,66 +14,141 @@
 </head>
 <body>
 
-    <!-- ===== HOME VIEW ===== -->
-    <div class="view" id="homeView">
-        <!-- Home Header -->
-        <header class="home-header">
-            <div class="home-hero">
+    <!-- ===== TAB: HOME ===== -->
+    <div class="tab-page" id="tabHome">
+        <div class="page-scroll">
+            <!-- Hero -->
+            <header class="home-header">
                 <div class="hero-icon">🇩🇪</div>
                 <h1 class="hero-title">Deutsch Vocab</h1>
-                <p class="hero-subtitle">A1 · Beginner Vocabulary</p>
-            </div>
-        </header>
+                <p class="hero-subtitle">Learn German, one word at a time</p>
+            </header>
 
-        <main class="home-content">
-            <!-- Overall Stats Card -->
-            <div class="stats-overview" id="statsOverview">
-                <div class="stat-item">
-                    <span class="stat-value" id="statMastered">0</span>
-                    <span class="stat-label">Mastered</span>
-                </div>
-                <div class="stat-divider"></div>
-                <div class="stat-item">
-                    <span class="stat-value" id="statTotal">501</span>
-                    <span class="stat-label">Total Words</span>
-                </div>
-                <div class="stat-divider"></div>
-                <div class="stat-item">
-                    <span class="stat-value" id="statStreak">0</span>
-                    <span class="stat-label">Best Streak</span>
-                </div>
-            </div>
-
-            <!-- Start Button -->
-            <button class="start-btn" id="startBtn">
-                <span class="start-btn-text">Start Practice</span>
-                <svg class="start-btn-arrow" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-                    <path d="M5 12h14"></path>
-                    <path d="M12 5l7 7-7 7"></path>
-                </svg>
-            </button>
-
-            <!-- Progress by Category -->
+            <!-- Level Selector -->
             <section class="home-section">
                 <div class="section-header">
-                    <h2 class="section-title">Progress by Category</h2>
-                    <span class="section-badge" id="categoriesBadge">0 / 20</span>
+                    <h2 class="section-title">Level</h2>
                 </div>
+                <div class="level-grid">
+                    <button class="level-card active" id="levelA1">
+                        <span class="level-card-badge">A1</span>
+                        <span class="level-card-label">Beginner</span>
+                        <span class="level-card-count">501 words</span>
+                    </button>
+                    <button class="level-card locked" disabled>
+                        <span class="level-card-badge">A2</span>
+                        <span class="level-card-label">Elementary</span>
+                        <span class="level-card-tag">Coming Soon</span>
+                    </button>
+                    <button class="level-card locked" disabled>
+                        <span class="level-card-badge">B1</span>
+                        <span class="level-card-label">Intermediate</span>
+                        <span class="level-card-tag">Coming Soon</span>
+                    </button>
+                </div>
+            </section>
+
+            <!-- Quick Stats -->
+            <section class="home-section">
+                <div class="stats-overview" id="statsOverview">
+                    <div class="stat-item">
+                        <span class="stat-value stat-green" id="statMastered">0</span>
+                        <span class="stat-label">Mastered</span>
+                    </div>
+                    <div class="stat-divider"></div>
+                    <div class="stat-item">
+                        <span class="stat-value" id="statRemaining">501</span>
+                        <span class="stat-label">Remaining</span>
+                    </div>
+                    <div class="stat-divider"></div>
+                    <div class="stat-item">
+                        <span class="stat-value stat-amber" id="statStreak">0</span>
+                        <span class="stat-label">Best Streak</span>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Practice Modes -->
+            <section class="home-section">
+                <div class="section-header">
+                    <h2 class="section-title">Practice</h2>
+                </div>
+                <div class="practice-modes">
+                    <button class="mode-card" id="modeAll">
+                        <div class="mode-icon">📖</div>
+                        <div class="mode-info">
+                            <div class="mode-title">All Words</div>
+                            <div class="mode-desc">Random words from all categories</div>
+                        </div>
+                        <svg class="mode-arrow" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18l6-6-6-6"/></svg>
+                    </button>
+                    <button class="mode-card" id="modeCategory">
+                        <div class="mode-icon">📂</div>
+                        <div class="mode-info">
+                            <div class="mode-title">By Category</div>
+                            <div class="mode-desc">Focus on a specific topic</div>
+                        </div>
+                        <svg class="mode-arrow" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18l6-6-6-6"/></svg>
+                    </button>
+                    <button class="mode-card" id="modeArticle">
+                        <div class="mode-icon">🔤</div>
+                        <div class="mode-info">
+                            <div class="mode-title">By Article</div>
+                            <div class="mode-desc">Practice der, die, or das</div>
+                        </div>
+                        <svg class="mode-arrow" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18l6-6-6-6"/></svg>
+                    </button>
+                </div>
+            </section>
+
+            <div class="tab-spacer"></div>
+        </div>
+    </div>
+
+    <!-- ===== TAB: PROGRESS ===== -->
+    <div class="tab-page hidden" id="tabProgress">
+        <div class="page-scroll">
+            <header class="page-header">
+                <h1 class="page-title">Progress</h1>
+                <span class="section-badge" id="categoriesBadge">0 / 20</span>
+            </header>
+
+            <!-- Overall progress bar -->
+            <section class="home-section">
+                <div class="overall-progress-card" id="overallProgress">
+                    <div class="overall-progress-text">
+                        <span class="overall-label">Overall</span>
+                        <span class="overall-pct" id="overallPct">0%</span>
+                    </div>
+                    <div class="overall-progress-bar">
+                        <div class="overall-progress-fill" id="overallFill" style="width:0%"></div>
+                    </div>
+                </div>
+            </section>
+
+            <section class="home-section">
                 <div class="category-list" id="categoryList">
                     <!-- Rendered by JS -->
                 </div>
             </section>
 
-            <!-- Settings -->
+            <div class="tab-spacer"></div>
+        </div>
+    </div>
+
+    <!-- ===== TAB: SETTINGS ===== -->
+    <div class="tab-page hidden" id="tabSettings">
+        <div class="page-scroll">
+            <header class="page-header">
+                <h1 class="page-title">Settings</h1>
+            </header>
+
             <section class="home-section">
-                <div class="section-header">
-                    <h2 class="section-title">Settings</h2>
-                </div>
                 <div class="settings-list">
                     <div class="setting-row">
                         <div class="setting-info">
                             <span class="setting-label">Number of options</span>
-                            <span class="setting-desc">How many meaning choices per word</span>
+                            <span class="setting-desc">Meaning choices per question</span>
                         </div>
                         <div class="setting-control">
                             <button class="stepper-btn" id="optionsMinus">−</button>
@@ -84,7 +159,7 @@
                     <div class="setting-row">
                         <div class="setting-info">
                             <span class="setting-label">Prioritize unlearned</span>
-                            <span class="setting-desc">Show words you haven't mastered more often</span>
+                            <span class="setting-desc">Show unmastered words more often</span>
                         </div>
                         <div class="setting-control">
                             <button class="toggle-btn" id="prioritizeToggle" aria-pressed="true">
@@ -92,7 +167,15 @@
                             </button>
                         </div>
                     </div>
-                    <button class="danger-btn" id="resetProgressBtn">
+                </div>
+            </section>
+
+            <section class="home-section">
+                <div class="section-header">
+                    <h2 class="section-title">Data</h2>
+                </div>
+                <div class="settings-list">
+                    <button class="danger-row" id="resetProgressBtn">
                         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                             <polyline points="3 6 5 6 21 6"></polyline>
                             <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
@@ -102,19 +185,72 @@
                 </div>
             </section>
 
-            <!-- App Info -->
             <section class="home-section app-info">
                 <p>501 A1-level German nouns · 20 categories</p>
                 <p>Master both meaning & article to score ✓</p>
             </section>
-        </main>
+
+            <div class="tab-spacer"></div>
+        </div>
     </div>
 
-    <!-- ===== QUIZ VIEW ===== -->
-    <div class="view hidden" id="quizView">
+    <!-- ===== SUB-PAGE: CATEGORY PICKER ===== -->
+    <div class="sub-page hidden" id="pageCategoryPicker">
+        <header class="sub-page-header">
+            <button class="nav-back-btn" id="catPickerBack" aria-label="Back">
+                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M19 12H5"></path>
+                    <path d="M12 19l-7-7 7-7"></path>
+                </svg>
+            </button>
+            <h1 class="sub-page-title">Choose Category</h1>
+            <div class="nav-spacer"></div>
+        </header>
+        <div class="page-scroll">
+            <div class="picker-grid" id="categoryPickerGrid">
+                <!-- Rendered by JS -->
+            </div>
+        </div>
+    </div>
+
+    <!-- ===== SUB-PAGE: ARTICLE PICKER ===== -->
+    <div class="sub-page hidden" id="pageArticlePicker">
+        <header class="sub-page-header">
+            <button class="nav-back-btn" id="artPickerBack" aria-label="Back">
+                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M19 12H5"></path>
+                    <path d="M12 19l-7-7 7-7"></path>
+                </svg>
+            </button>
+            <h1 class="sub-page-title">Choose Article</h1>
+            <div class="nav-spacer"></div>
+        </header>
+        <div class="page-scroll">
+            <div class="article-picker-list" id="articlePickerList">
+                <button class="article-pick-card article-pick-der" data-article="der">
+                    <span class="article-pick-word">der</span>
+                    <span class="article-pick-label">Masculine</span>
+                    <span class="article-pick-count" id="countDer">0 words</span>
+                </button>
+                <button class="article-pick-card article-pick-die" data-article="die">
+                    <span class="article-pick-word">die</span>
+                    <span class="article-pick-label">Feminine</span>
+                    <span class="article-pick-count" id="countDie">0 words</span>
+                </button>
+                <button class="article-pick-card article-pick-das" data-article="das">
+                    <span class="article-pick-word">das</span>
+                    <span class="article-pick-label">Neuter</span>
+                    <span class="article-pick-count" id="countDas">0 words</span>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ===== QUIZ VIEW (full-screen overlay) ===== -->
+    <div class="quiz-overlay hidden" id="quizView">
         <!-- Top Bar -->
         <header class="top-bar">
-            <button class="back-btn" id="backBtn" aria-label="Back to home">
+            <button class="nav-back-btn" id="quizBackBtn" aria-label="Back to home">
                 <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
                     <path d="M19 12H5"></path>
                     <path d="M12 19l-7-7 7-7"></path>
@@ -125,7 +261,7 @@
                 <span class="score-divider">/</span>
                 <span class="score-total" id="scoreTotal">0</span>
             </div>
-            <div class="level-badge">A1</div>
+            <div class="quiz-filter-badge" id="quizFilterBadge">A1</div>
         </header>
 
         <!-- Streak indicator -->
@@ -136,7 +272,6 @@
 
         <!-- Main Quiz Area -->
         <main class="quiz-container">
-            <!-- Word Card -->
             <div class="word-card" id="wordCard">
                 <div class="word-label">Was bedeutet…</div>
                 <div class="word-text" id="wordText">Hund</div>
@@ -146,15 +281,11 @@
                 </div>
             </div>
 
-            <!-- Question Area -->
             <div class="question-area">
                 <div class="question-label" id="questionLabel">Choose the English meaning</div>
-                <div class="options-grid" id="optionsGrid">
-                    <!-- Options rendered by JS -->
-                </div>
+                <div class="options-grid" id="optionsGrid"></div>
             </div>
 
-            <!-- Result Banner (shown between words) -->
             <div class="result-banner hidden" id="resultBanner">
                 <div class="result-icon" id="resultIcon"></div>
                 <div class="result-text" id="resultText"></div>
@@ -162,11 +293,36 @@
             </div>
         </main>
 
-        <!-- Next Button -->
         <footer class="bottom-bar">
             <button class="next-btn hidden" id="nextBtn">Next Word</button>
         </footer>
     </div>
+
+    <!-- ===== BOTTOM TAB BAR ===== -->
+    <nav class="tab-bar" id="tabBar">
+        <button class="tab-btn active" data-tab="tabHome">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path>
+                <polyline points="9 22 9 12 15 12 15 22"></polyline>
+            </svg>
+            <span>Home</span>
+        </button>
+        <button class="tab-btn" data-tab="tabProgress">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <line x1="18" y1="20" x2="18" y2="10"></line>
+                <line x1="12" y1="20" x2="12" y2="4"></line>
+                <line x1="6" y1="20" x2="6" y2="14"></line>
+            </svg>
+            <span>Progress</span>
+        </button>
+        <button class="tab-btn" data-tab="tabSettings">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <circle cx="12" cy="12" r="3"></circle>
+                <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path>
+            </svg>
+            <span>Settings</span>
+        </button>
+    </nav>
 
     <script src="words.js"></script>
     <script src="app.js"></script>

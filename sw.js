@@ -3,7 +3,7 @@
    Caches all assets for offline use
    ============================================ */
 
-const CACHE_NAME = 'deutsch-vocab-v1';
+const CACHE_NAME = 'deutsch-vocab-v2';
 const ASSETS = [
     './',
     './index.html',
@@ -11,6 +11,7 @@ const ASSETS = [
     './app.js',
     './words.js',
     './manifest.json',
+    './sw.js',
 ];
 
 // Install — cache all assets

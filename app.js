@@ -1,7 +1,6 @@
 /* ============================================
    DEUTSCH VOCAB — Quiz Engine
-   Two-step quiz: meaning → article
-   With homepage, stats tracking & settings
+   Multi-page app with filtered practice modes
    ============================================ */
 
 (function () {
@@ -39,19 +38,14 @@
             if (raw) return JSON.parse(raw);
         } catch (e) { /* ignore */ }
         return {
-            mastered: [],           // array of word strings that have been answered correctly (both parts)
+            mastered: [],
             bestStreak: 0,
-            settings: {
-                numOptions: 4,      // 3, 4, or 5
-                prioritizeUnlearned: true,
-            },
+            settings: { numOptions: 4, prioritizeUnlearned: true },
         };
     }
 
     function saveData() {
-        try {
-            localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
-        } catch (e) { /* ignore */ }
+        try { localStorage.setItem(STORAGE_KEY, JSON.stringify(data)); } catch (e) { /* ignore */ }
     }
 
     let data = loadData();
@@ -59,20 +53,20 @@
     // --- State ---
     const state = {
         currentWord: null,
-        step: 'meaning',        // 'meaning' | 'article' | 'result'
+        step: 'meaning',
         meaningCorrect: false,
         articleCorrect: false,
         score: { correct: 0, total: 0 },
         streak: 0,
         answered: false,
-        currentView: 'home',    // 'home' | 'quiz'
+        filter: { type: 'all', value: null },  // { type: 'all'|'category'|'article', value: string|null }
     };
 
-    // --- DOM References (lazy, resolved when needed) ---
+    // --- DOM helpers ---
     function $(id) { return document.getElementById(id); }
     function $q(sel) { return document.querySelector(sel); }
 
-    // --- Helpers ---
+    // --- Word helpers ---
     function shuffle(arr) {
         const a = [...arr];
         for (let i = a.length - 1; i > 0; i--) {
@@ -82,71 +76,143 @@
         return a;
     }
 
+    function getFilteredWords() {
+        let words = A1_WORDS;
+        if (state.filter.type === 'category') {
+            words = words.filter(w => w.category === state.filter.value);
+        } else if (state.filter.type === 'article') {
+            words = words.filter(w => w.article === state.filter.value);
+        }
+        return words;
+    }
+
     function pickRandom(arr, count, exclude) {
         const filtered = arr.filter(w => w.meaning !== exclude);
-        const shuffled = shuffle(filtered);
-        return shuffled.slice(0, count);
+        return shuffle(filtered).slice(0, count);
     }
 
     function getRandomWord() {
+        const pool = getFilteredWords();
+        if (pool.length === 0) return A1_WORDS[0]; // fallback
+
         if (data.settings.prioritizeUnlearned) {
-            const unmastered = A1_WORDS.filter(w => !data.mastered.includes(w.word));
-            if (unmastered.length > 0) {
-                // 70% chance to pick unmastered, 30% any word
-                if (Math.random() < 0.7) {
-                    return unmastered[Math.floor(Math.random() * unmastered.length)];
-                }
+            const unmastered = pool.filter(w => !data.mastered.includes(w.word));
+            if (unmastered.length > 0 && Math.random() < 0.7) {
+                return unmastered[Math.floor(Math.random() * unmastered.length)];
             }
         }
-        return A1_WORDS[Math.floor(Math.random() * A1_WORDS.length)];
+        return pool[Math.floor(Math.random() * pool.length)];
     }
 
-    function getMasteredSet() {
-        return new Set(data.mastered);
-    }
+    function getMasteredSet() { return new Set(data.mastered); }
 
     function getCategoryStats() {
         const masteredSet = getMasteredSet();
         const categories = {};
-
         A1_WORDS.forEach(w => {
-            if (!categories[w.category]) {
-                categories[w.category] = { total: 0, mastered: 0 };
-            }
+            if (!categories[w.category]) categories[w.category] = { total: 0, mastered: 0 };
             categories[w.category].total++;
-            if (masteredSet.has(w.word)) {
-                categories[w.category].mastered++;
-            }
+            if (masteredSet.has(w.word)) categories[w.category].mastered++;
         });
-
         return categories;
     }
 
     // ==================================
-    //  HOME VIEW
+    //  NAVIGATION
+    // ==================================
+
+    const tabPages = ['tabHome', 'tabProgress', 'tabSettings'];
+
+    function showTab(tabId) {
+        tabPages.forEach(id => $(id).classList.toggle('hidden', id !== tabId));
+        document.querySelectorAll('.tab-btn').forEach(btn => {
+            btn.classList.toggle('active', btn.dataset.tab === tabId);
+        });
+
+        if (tabId === 'tabHome') renderHome();
+        else if (tabId === 'tabProgress') renderProgress();
+        else if (tabId === 'tabSettings') renderSettings();
+    }
+
+    function openSubPage(pageId) {
+        $(pageId).classList.remove('hidden');
+        $('tabBar').classList.add('hidden');
+    }
+
+    function closeSubPage(pageId, callback) {
+        const page = $(pageId);
+        page.classList.add('slide-out');
+        setTimeout(() => {
+            page.classList.add('hidden');
+            page.classList.remove('slide-out');
+            $('tabBar').classList.remove('hidden');
+            if (callback) callback();
+        }, 250);
+    }
+
+    function openQuiz(filterType, filterValue) {
+        state.filter = { type: filterType, value: filterValue };
+        state.score = { correct: 0, total: 0 };
+        state.streak = 0;
+
+        // Set quiz badge
+        let badgeText = 'A1';
+        if (filterType === 'category') badgeText = filterValue;
+        else if (filterType === 'article') badgeText = filterValue;
+        $('quizFilterBadge').textContent = badgeText;
+
+        $('quizView').classList.remove('hidden', 'fade-out');
+        $('tabBar').classList.add('hidden');
+        renderScore();
+        updateStreakBar();
+        startNewWord();
+    }
+
+    function closeQuiz() {
+        const quiz = $('quizView');
+        quiz.classList.add('fade-out');
+        setTimeout(() => {
+            quiz.classList.add('hidden');
+            quiz.classList.remove('fade-out');
+            $('tabBar').classList.remove('hidden');
+            renderHome();
+        }, 250);
+    }
+
+    // ==================================
+    //  HOME
     // ==================================
 
     function renderHome() {
         const masteredSet = getMasteredSet();
+        const totalMastered = masteredSet.size;
+        const totalWords = A1_WORDS.length;
+
+        $('statMastered').textContent = totalMastered;
+        $('statRemaining').textContent = totalWords - totalMastered;
+        $('statStreak').textContent = data.bestStreak;
+    }
+
+    // ==================================
+    //  PROGRESS
+    // ==================================
+
+    function renderProgress() {
+        const masteredSet = getMasteredSet();
         const categoryStats = getCategoryStats();
         const totalMastered = masteredSet.size;
         const totalWords = A1_WORDS.length;
+        const overallPct = Math.round((totalMastered / totalWords) * 100);
         const categoriesComplete = Object.values(categoryStats).filter(c => c.mastered === c.total).length;
         const totalCategories = Object.keys(categoryStats).length;
 
-        // Stats overview
-        $('statMastered').textContent = totalMastered;
-        $('statTotal').textContent = totalWords;
-        $('statStreak').textContent = data.bestStreak;
-
-        // Categories badge
         $('categoriesBadge').textContent = `${categoriesComplete} / ${totalCategories}`;
+        $('overallPct').textContent = `${overallPct}%`;
+        $('overallFill').style.width = `${overallPct}%`;
 
-        // Category list
         const $list = $('categoryList');
         $list.innerHTML = '';
 
-        // Sort categories: incomplete first (by % done desc), then completed
         const sortedCategories = Object.entries(categoryStats).sort((a, b) => {
             const aPct = a[1].mastered / a[1].total;
             const bPct = b[1].mastered / b[1].total;
@@ -176,8 +242,13 @@
             `;
             $list.appendChild(row);
         });
+    }
 
-        // Settings state
+    // ==================================
+    //  SETTINGS
+    // ==================================
+
+    function renderSettings() {
         $('optionsValue').textContent = data.settings.numOptions;
         $('optionsMinus').disabled = data.settings.numOptions <= 3;
         $('optionsPlus').disabled = data.settings.numOptions >= 5;
@@ -185,24 +256,46 @@
     }
 
     // ==================================
-    //  VIEW NAVIGATION
+    //  CATEGORY PICKER
     // ==================================
 
-    function showView(viewName) {
-        state.currentView = viewName;
-        $('homeView').classList.toggle('hidden', viewName !== 'home');
-        $('quizView').classList.toggle('hidden', viewName !== 'quiz');
+    function renderCategoryPicker() {
+        const masteredSet = getMasteredSet();
+        const categoryStats = getCategoryStats();
+        const grid = $('categoryPickerGrid');
+        grid.innerHTML = '';
 
-        if (viewName === 'home') {
-            renderHome();
-        } else if (viewName === 'quiz') {
-            state.score.correct = 0;
-            state.score.total = 0;
-            state.streak = 0;
-            renderScore();
-            updateStreakBar();
-            startNewWord();
-        }
+        const sorted = Object.entries(categoryStats).sort((a, b) => a[0].localeCompare(b[0]));
+
+        sorted.forEach(([cat, stats]) => {
+            const emoji = CATEGORY_EMOJIS[cat] || '📖';
+            const card = document.createElement('button');
+            card.className = 'picker-card';
+            card.innerHTML = `
+                <div class="picker-card-emoji">${emoji}</div>
+                <div class="picker-card-name">${cat}</div>
+                <div class="picker-card-count">${stats.total} words</div>
+                <div class="picker-card-progress">${stats.mastered} mastered</div>
+            `;
+            card.addEventListener('click', () => {
+                closeSubPage('pageCategoryPicker', () => openQuiz('category', cat));
+            });
+            grid.appendChild(card);
+        });
+    }
+
+    // ==================================
+    //  ARTICLE PICKER
+    // ==================================
+
+    function renderArticlePicker() {
+        const derCount = A1_WORDS.filter(w => w.article === 'der').length;
+        const dieCount = A1_WORDS.filter(w => w.article === 'die').length;
+        const dasCount = A1_WORDS.filter(w => w.article === 'das').length;
+
+        $('countDer').textContent = `${derCount} words`;
+        $('countDie').textContent = `${dieCount} words`;
+        $('countDas').textContent = `${dasCount} words`;
     }
 
     // ==================================
@@ -248,10 +341,10 @@
         }
     }
 
-    // --- Render Meaning Options ---
     function renderMeaningOptions() {
         const word = state.currentWord;
         const numDistractors = data.settings.numOptions - 1;
+        // Pull distractors from ALL words (not just filtered) for variety
         const distractors = pickRandom(A1_WORDS, numDistractors, word.meaning);
         const options = shuffle([
             { text: word.meaning, correct: true },
@@ -259,7 +352,6 @@
         ]);
 
         const letters = ['A', 'B', 'C', 'D', 'E'];
-
         $('questionLabel').textContent = 'Choose the English meaning';
         const grid = $('optionsGrid');
         grid.innerHTML = '';
@@ -279,7 +371,6 @@
     function handleMeaningAnswer(selectedBtn, selectedOpt, allOptions) {
         if (state.answered) return;
         state.answered = true;
-
         state.meaningCorrect = selectedOpt.correct;
 
         const allBtns = $('optionsGrid').querySelectorAll('.option-btn');
@@ -289,10 +380,7 @@
                 btn.classList.add(selectedOpt.correct ? 'correct' : 'reveal-correct');
             }
         });
-
-        if (!selectedOpt.correct) {
-            selectedBtn.classList.add('incorrect');
-        }
+        if (!selectedOpt.correct) selectedBtn.classList.add('incorrect');
 
         setTimeout(() => transitionToArticleStep(), 1000);
     }
@@ -349,27 +437,19 @@
                 btn.classList.add(state.articleCorrect ? 'correct' : 'reveal-correct');
             }
         });
-
-        if (!state.articleCorrect) {
-            selectedBtn.classList.add('incorrect');
-        }
+        if (!state.articleCorrect) selectedBtn.classList.add('incorrect');
 
         $('wordText').textContent = `${correctArticle} ${state.currentWord.word}`;
 
-        // Update score & streak
         const bothCorrect = state.meaningCorrect && state.articleCorrect;
         state.score.total++;
         if (bothCorrect) {
             state.score.correct++;
             state.streak++;
-
-            // Track mastery
             if (!data.mastered.includes(state.currentWord.word)) {
                 data.mastered.push(state.currentWord.word);
             }
-            if (state.streak > data.bestStreak) {
-                data.bestStreak = state.streak;
-            }
+            if (state.streak > data.bestStreak) data.bestStreak = state.streak;
             saveData();
         } else {
             state.streak = 0;
@@ -442,79 +522,84 @@
     //  EVENT LISTENERS
     // ==================================
 
-    // Navigation
-    $('startBtn').addEventListener('click', () => showView('quiz'));
-    $('backBtn').addEventListener('click', () => showView('home'));
+    // Tab bar
+    document.querySelectorAll('.tab-btn').forEach(btn => {
+        btn.addEventListener('click', () => showTab(btn.dataset.tab));
+    });
+
+    // Practice modes
+    $('modeAll').addEventListener('click', () => openQuiz('all', null));
+
+    $('modeCategory').addEventListener('click', () => {
+        renderCategoryPicker();
+        openSubPage('pageCategoryPicker');
+    });
+
+    $('modeArticle').addEventListener('click', () => {
+        renderArticlePicker();
+        openSubPage('pageArticlePicker');
+    });
+
+    // Sub-page backs
+    $('catPickerBack').addEventListener('click', () => closeSubPage('pageCategoryPicker'));
+    $('artPickerBack').addEventListener('click', () => closeSubPage('pageArticlePicker'));
+
+    // Article picker cards
+    document.querySelectorAll('.article-pick-card').forEach(card => {
+        card.addEventListener('click', () => {
+            const article = card.dataset.article;
+            closeSubPage('pageArticlePicker', () => openQuiz('article', article));
+        });
+    });
+
+    // Quiz
+    $('quizBackBtn').addEventListener('click', closeQuiz);
     $('nextBtn').addEventListener('click', startNewWord);
 
-    // Settings: number of options
+    // Settings
     $('optionsMinus').addEventListener('click', () => {
-        if (data.settings.numOptions > 3) {
-            data.settings.numOptions--;
-            saveData();
-            renderHome();
-        }
+        if (data.settings.numOptions > 3) { data.settings.numOptions--; saveData(); renderSettings(); }
     });
-
     $('optionsPlus').addEventListener('click', () => {
-        if (data.settings.numOptions < 5) {
-            data.settings.numOptions++;
-            saveData();
-            renderHome();
-        }
+        if (data.settings.numOptions < 5) { data.settings.numOptions++; saveData(); renderSettings(); }
     });
-
-    // Settings: prioritize unlearned toggle
     $('prioritizeToggle').addEventListener('click', () => {
         data.settings.prioritizeUnlearned = !data.settings.prioritizeUnlearned;
         saveData();
         $('prioritizeToggle').setAttribute('aria-pressed', data.settings.prioritizeUnlearned ? 'true' : 'false');
     });
-
-    // Settings: reset all progress
     $('resetProgressBtn').addEventListener('click', () => {
         if (confirm('This will reset all your mastered words and best streak. Are you sure?')) {
             data.mastered = [];
             data.bestStreak = 0;
             saveData();
-            renderHome();
+            showTab('tabSettings');
         }
     });
 
-    // Keyboard support
+    // Keyboard
     document.addEventListener('keydown', (e) => {
-        if (state.currentView !== 'quiz') return;
+        // Only in quiz view
+        if ($('quizView').classList.contains('hidden')) return;
 
         if (state.step === 'result') {
-            if (e.key === 'Enter' || e.key === ' ') {
-                e.preventDefault();
-                startNewWord();
-            }
+            if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); startNewWord(); }
             return;
         }
 
+        if (e.key === 'Escape') { closeQuiz(); return; }
         if (state.answered) return;
 
         const btns = $('optionsGrid').querySelectorAll('.option-btn');
         const keyMap = { 'a': 0, 'b': 1, 'c': 2, 'd': 3, 'e': 4, '1': 0, '2': 1, '3': 2, '4': 3, '5': 4 };
         const index = keyMap[e.key.toLowerCase()];
-
-        if (index !== undefined && index >= 0 && index < btns.length) {
-            btns[index].click();
-        }
-    });
-
-    // Escape to go back
-    document.addEventListener('keydown', (e) => {
-        if (e.key === 'Escape' && state.currentView === 'quiz') {
-            showView('home');
-        }
+        if (index !== undefined && index >= 0 && index < btns.length) btns[index].click();
     });
 
     // --- Init ---
-    showView('home');
+    showTab('tabHome');
 
-    // --- Register Service Worker ---
+    // Service Worker
     if ('serviceWorker' in navigator) {
         navigator.serviceWorker.register('./sw.js').catch(() => {});
     }
