@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, user-scalable=no">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="theme-color" content="#0a0e1a">
+    <meta name="description" content="Practice A1 German vocabulary — learn meanings and articles with a quiz-style app">
+    <title>Deutsch Vocab — A1 Practice</title>
+    <link rel="manifest" href="manifest.json">
+    <link rel="apple-touch-icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='20' fill='%230a0e1a'/><text x='50' y='62' font-size='48' text-anchor='middle' fill='%23f0f0f0' font-family='system-ui'>🇩🇪</text></svg>">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+    <!-- ===== HOME VIEW ===== -->
+    <div class="view" id="homeView">
+        <!-- Home Header -->
+        <header class="home-header">
+            <div class="home-hero">
+                <div class="hero-icon">🇩🇪</div>
+                <h1 class="hero-title">Deutsch Vocab</h1>
+                <p class="hero-subtitle">A1 · Beginner Vocabulary</p>
+            </div>
+        </header>
+
+        <main class="home-content">
+            <!-- Overall Stats Card -->
+            <div class="stats-overview" id="statsOverview">
+                <div class="stat-item">
+                    <span class="stat-value" id="statMastered">0</span>
+                    <span class="stat-label">Mastered</span>
+                </div>
+                <div class="stat-divider"></div>
+                <div class="stat-item">
+                    <span class="stat-value" id="statTotal">501</span>
+                    <span class="stat-label">Total Words</span>
+                </div>
+                <div class="stat-divider"></div>
+                <div class="stat-item">
+                    <span class="stat-value" id="statStreak">0</span>
+                    <span class="stat-label">Best Streak</span>
+                </div>
+            </div>
+
+            <!-- Start Button -->
+            <button class="start-btn" id="startBtn">
+                <span class="start-btn-text">Start Practice</span>
+                <svg class="start-btn-arrow" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M5 12h14"></path>
+                    <path d="M12 5l7 7-7 7"></path>
+                </svg>
+            </button>
+
+            <!-- Progress by Category -->
+            <section class="home-section">
+                <div class="section-header">
+                    <h2 class="section-title">Progress by Category</h2>
+                    <span class="section-badge" id="categoriesBadge">0 / 20</span>
+                </div>
+                <div class="category-list" id="categoryList">
+                    <!-- Rendered by JS -->
+                </div>
+            </section>
+
+            <!-- Settings -->
+            <section class="home-section">
+                <div class="section-header">
+                    <h2 class="section-title">Settings</h2>
+                </div>
+                <div class="settings-list">
+                    <div class="setting-row">
+                        <div class="setting-info">
+                            <span class="setting-label">Number of options</span>
+                            <span class="setting-desc">How many meaning choices per word</span>
+                        </div>
+                        <div class="setting-control">
+                            <button class="stepper-btn" id="optionsMinus">−</button>
+                            <span class="stepper-value" id="optionsValue">4</span>
+                            <button class="stepper-btn" id="optionsPlus">+</button>
+                        </div>
+                    </div>
+                    <div class="setting-row">
+                        <div class="setting-info">
+                            <span class="setting-label">Prioritize unlearned</span>
+                            <span class="setting-desc">Show words you haven't mastered more often</span>
+                        </div>
+                        <div class="setting-control">
+                            <button class="toggle-btn" id="prioritizeToggle" aria-pressed="true">
+                                <span class="toggle-track"><span class="toggle-thumb"></span></span>
+                            </button>
+                        </div>
+                    </div>
+                    <button class="danger-btn" id="resetProgressBtn">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <polyline points="3 6 5 6 21 6"></polyline>
+                            <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+                        </svg>
+                        Reset All Progress
+                    </button>
+                </div>
+            </section>
+
+            <!-- App Info -->
+            <section class="home-section app-info">
+                <p>501 A1-level German nouns · 20 categories</p>
+                <p>Master both meaning & article to score ✓</p>
+            </section>
+        </main>
+    </div>
+
+    <!-- ===== QUIZ VIEW ===== -->
+    <div class="view hidden" id="quizView">
+        <!-- Top Bar -->
+        <header class="top-bar">
+            <button class="back-btn" id="backBtn" aria-label="Back to home">
+                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M19 12H5"></path>
+                    <path d="M12 19l-7-7 7-7"></path>
+                </svg>
+            </button>
+            <div class="score-display">
+                <span class="score-correct" id="scoreCorrect">0</span>
+                <span class="score-divider">/</span>
+                <span class="score-total" id="scoreTotal">0</span>
+            </div>
+            <div class="level-badge">A1</div>
+        </header>
+
+        <!-- Streak indicator -->
+        <div class="streak-bar hidden" id="streakBar">
+            <span class="streak-flame">🔥</span>
+            <span class="streak-count" id="streakCount">0</span>
+        </div>
+
+        <!-- Main Quiz Area -->
+        <main class="quiz-container">
+            <!-- Word Card -->
+            <div class="word-card" id="wordCard">
+                <div class="word-label">Was bedeutet…</div>
+                <div class="word-text" id="wordText">Hund</div>
+                <div class="step-indicator" id="stepIndicator">
+                    <span class="step-dot active" id="stepDot1"></span>
+                    <span class="step-dot" id="stepDot2"></span>
+                </div>
+            </div>
+
+            <!-- Question Area -->
+            <div class="question-area">
+                <div class="question-label" id="questionLabel">Choose the English meaning</div>
+                <div class="options-grid" id="optionsGrid">
+                    <!-- Options rendered by JS -->
+                </div>
+            </div>
+
+            <!-- Result Banner (shown between words) -->
+            <div class="result-banner hidden" id="resultBanner">
+                <div class="result-icon" id="resultIcon"></div>
+                <div class="result-text" id="resultText"></div>
+                <div class="result-detail" id="resultDetail"></div>
+            </div>
+        </main>
+
+        <!-- Next Button -->
+        <footer class="bottom-bar">
+            <button class="next-btn hidden" id="nextBtn">Next Word</button>
+        </footer>
+    </div>
+
+    <script src="words.js"></script>
+    <script src="app.js"></script>
+</body>
+</html>
