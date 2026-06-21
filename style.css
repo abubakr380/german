@@ -171,6 +171,12 @@ body::before {
     animation: slideInRight 0.3s var(--ease-out-expo);
 }
 
+.sub-page .page-scroll {
+    flex: 1;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+}
+
 .sub-page.slide-out {
     animation: slideOutRight 0.25s ease forwards;
 }
@@ -1024,6 +1030,8 @@ body::before {
     max-width: 430px;
     margin: 0 auto;
     width: 100%;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
 }
 
 .word-card {

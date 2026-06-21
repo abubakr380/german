@@ -3,7 +3,7 @@
    Caches all assets for offline use
    ============================================ */
 
-const CACHE_NAME = 'deutsch-vocab-v3';
+const CACHE_NAME = 'deutsch-vocab-v4';
 const ASSETS = [
     './',
     './index.html',
